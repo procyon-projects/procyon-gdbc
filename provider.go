@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"github.com/go-gdbc/gdbc"
 	"github.com/procyon-projects/procyon-configure"
-	"github.com/procyon-projects/procyon-context"
 )
 
 type ConnectionProvider interface {
@@ -12,16 +11,11 @@ type ConnectionProvider interface {
 }
 
 type simpleConnectionProvider struct {
-	logger             context.Logger
 	databaseConnection *sql.DB
 }
 
-func newSimpleDatabaseConnectionProvider(logger context.Logger,
-	dataSourceProperties configure.DataSourceProperties) *simpleConnectionProvider {
-	provider := &simpleConnectionProvider{
-		logger,
-		nil,
-	}
+func newSimpleDatabaseConnectionProvider(dataSourceProperties configure.DataSourceProperties) *simpleConnectionProvider {
+	provider := &simpleConnectionProvider{}
 	provider.initDatabaseConnection(dataSourceProperties)
 	return provider
 }
@@ -32,15 +26,13 @@ func (connectionProvider *simpleConnectionProvider) initDatabaseConnection(prope
 		gdbc.Password(properties.Password),
 	)
 	if err != nil {
-		connectionProvider.logger.Fatal(nil, "Could not create the data source : "+err.Error())
-		return
+		panic("Could not get the data source : " + err.Error())
 	}
 
 	var databaseConnection *sql.DB
 	databaseConnection, err = dataSource.GetConnection()
 	if err != nil {
-		connectionProvider.logger.Fatal(nil, "Could not create database connection : "+err.Error())
-		return
+		panic("Could not create the database connection : " + err.Error())
 	}
 	connectionProvider.databaseConnection = databaseConnection
 }
